@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Arbitrage Opportunities</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+        th { background-color: #f4f4f4; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Crypto Arbitrage Opportunities</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Pair</th>
+                <th>Buy Exchange</th>
+                <th>Sell Exchange</th>
+                <th>Buy Price</th>
+                <th>Sell Price</th>
+                <th>Profit (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (opportunities.length > 0) { %>
+                <% opportunities.forEach(opportunity => { %>
+                    <tr>
+                        <td><%= opportunity.pair %></td>
+                        <td><%= opportunity.buyExchange %></td>
+                        <td><%= opportunity.sellExchange %></td>
+                        <td><%= opportunity.buyPrice.toFixed(2) %></td>
+                        <td><%= opportunity.sellPrice.toFixed(2) %></td>
+                        <td><%= opportunity.profit %></td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="6">No opportunities found</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</body>
+</html>
