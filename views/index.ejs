@@ -4,46 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Arbitrage Opportunities</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
-        th { background-color: #f4f4f4; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Crypto Arbitrage Opportunities</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Pair</th>
-                <th>Buy Exchange</th>
-                <th>Sell Exchange</th>
-                <th>Buy Price</th>
-                <th>Sell Price</th>
-                <th>Profit (%)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% if (opportunities.length > 0) { %>
-                <% opportunities.forEach(opportunity => { %>
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto py-10">
+        <h1 class="text-3xl font-bold text-center mb-8">Crypto Arbitrage Opportunities</h1>
+
+        <% if (error) { %>
+            <div class="bg-red-100 text-red-700 border border-red-400 rounded p-4 text-center">
+                <p><%= error %></p>
+            </div>
+        <% } else if (opportunities.length === 0) { %>
+            <div class="bg-yellow-100 text-yellow-700 border border-yellow-400 rounded p-4 text-center">
+                <p>No arbitrage opportunities found at the moment.</p>
+            </div>
+        <% } else { %>
+            <table class="table-auto w-full bg-white shadow-md rounded overflow-hidden">
+                <thead class="bg-gray-800 text-white">
                     <tr>
-                        <td><%= opportunity.pair %></td>
-                        <td><%= opportunity.buyExchange %></td>
-                        <td><%= opportunity.sellExchange %></td>
-                        <td><%= opportunity.buyPrice.toFixed(2) %></td>
-                        <td><%= opportunity.sellPrice.toFixed(2) %></td>
-                        <td><%= opportunity.profit %></td>
+                        <th class="px-4 py-2">Pair</th>
+                        <th class="px-4 py-2">Buy Exchange</th>
+                        <th class="px-4 py-2">Sell Exchange</th>
+                        <th class="px-4 py-2">Buy Price</th>
+                        <th class="px-4 py-2">Sell Price</th>
+                        <th class="px-4 py-2">Profit (%)</th>
                     </tr>
-                <% }) %>
-            <% } else { %>
-                <tr>
-                    <td colspan="6">No opportunities found</td>
-                </tr>
-            <% } %>
-        </tbody>
-    </table>
+                </thead>
+                <tbody>
+                    <% opportunities.forEach(opportunity => { %>
+                        <tr class="text-center border-t">
+                            <td class="px-4 py-2"><%= opportunity.pair %></td>
+                            <td class="px-4 py-2"><%= opportunity.buyExchange %></td>
+                            <td class="px-4 py-2"><%= opportunity.sellExchange %></td>
+                            <td class="px-4 py-2 text-green-600 font-mono">
+                                <%= parseFloat(opportunity.buyPrice.toFixed(15)) %>
+                            </td>
+                            <td class="px-4 py-2 text-red-600 font-mono">
+                                <%= parseFloat(opportunity.sellPrice.toFixed(15)) %>
+                            </td>
+                            <td class="px-4 py-2 font-bold text-blue-600">
+                                <%= opportunity.profit %>%
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } %>
+    </div>
 </body>
 </html>
