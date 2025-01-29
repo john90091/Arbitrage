@@ -3,7 +3,7 @@ const express = require('express');
 const ccxt = require('ccxt');
 
 // Список бирж
-const exchangeNames = ['htx', 'xt', 'kraken', 'bitfinex', 'mexc', 'bingx', 'lbank', 'bitget'];
+const exchangeNames = ['huobi', 'xt', 'kraken', 'bitfinex', 'mexc', 'bingx', 'lbank', 'bitget'];
 
 // Инициализация бирж через CCXT
 function initializeExchanges() {
@@ -11,6 +11,7 @@ function initializeExchanges() {
     exchangeNames.forEach(name => {
         try {
             exchanges[name] = new ccxt[name]({ enableRateLimit: true });
+            console.log(`Успешно подключено к бирже: ${name}`);
         } catch (error) {
             console.error(`Ошибка подключения к бирже ${name}:`, error);
         }
@@ -23,15 +24,21 @@ async function fetchAllPrices(exchanges) {
     const allPrices = {};
     for (const [name, exchange] of Object.entries(exchanges)) {
         try {
-            console.log(`Получение данных с ${name}...`);
+            console.log(`Получение данных с биржи ${name}...`);
             const tickers = await exchange.fetchTickers();
+
+            // Фильтрация данных для сохранения только доступных цен
             allPrices[name] = Object.fromEntries(
                 Object.entries(tickers)
-                    .map(([pair, ticker]) => [pair, ticker.last])
-                    .filter(([, price]) => price !== null)
+                    .map(([pair, ticker]) => {
+                        const price = ticker.last || ticker.close; // Последняя или закрытая цена
+                        return [pair, price];
+                    })
+                    .filter(([, price]) => price !== null && price > 0) // Удаляем пустые и нулевые цены
+                    .map(([pair, price]) => [pair, parseFloat(price.toPrecision(15))]) // Точная обработка сверхмалых цен
             );
         } catch (error) {
-            console.error(`Ошибка получения данных с ${name}:`, error);
+            console.error(`Ошибка получения данных с биржи ${name}:`, error);
         }
     }
     return allPrices;
@@ -52,7 +59,7 @@ function calculateArbitrage(allPrices) {
             }, {});
 
         const validPrices = Object.entries(pricesByExchange)
-            .filter(([, price]) => price !== undefined);
+            .filter(([, price]) => price !== undefined && price > 0); // Удаляем пустые и нулевые значения
 
         for (const [buyExchange, buyPrice] of validPrices) {
             for (const [sellExchange, sellPrice] of validPrices) {
@@ -63,8 +70,8 @@ function calculateArbitrage(allPrices) {
                             pair,
                             buyExchange,
                             sellExchange,
-                            buyPrice,
-                            sellPrice,
+                            buyPrice: parseFloat(buyPrice.toFixed(15)), // Точная цена с высокой точностью
+                            sellPrice: parseFloat(sellPrice.toFixed(15)), // Точная цена с высокой точностью
                             profit: parseFloat(profit.toFixed(2))
                         });
                     }
@@ -85,9 +92,15 @@ app.use(express.static('public'));
 app.get('/', async (req, res) => {
     const exchanges = initializeExchanges();
     const allPrices = await fetchAllPrices(exchanges);
+
+    // Если данные не удалось загрузить
+    if (Object.keys(allPrices).length === 0) {
+        return res.render('index', { opportunities: [], error: 'Ошибка загрузки данных с бирж.' });
+    }
+
     const opportunities = calculateArbitrage(allPrices);
     console.log(opportunities); // Проверка переданных данных
-    res.render('index', { opportunities });
+    res.render('index', { opportunities, error: null });
 });
 
 // Экспорт приложения для Vercel
